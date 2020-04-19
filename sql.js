@@ -123,7 +123,7 @@ const mostMedaledAthlete = country => {
   return `SELECT name, COUNT(DISTINCT name) FROM GoldMedal WHERE country = '${country}' ORDER BY COUNT(DISTINCT name) DESC LIMIT 1`;
 };
 
-const determineSortOrder = sortAscending => sortAscending ? `ORDER BY ${field} ASC` : `ORDER BY ${field} DESC`;
+const determineSortOrder = (field, sortAscending) => sortAscending ? `ORDER BY ${field} ASC` : `ORDER BY ${field} DESC`;
 
 /*
 Returns a SQL query string that will find the medals a country has won
@@ -133,10 +133,10 @@ optionally ordered by the given field in the specified direction.
 const orderedMedals = (country, field, sortAscending) => {
   let orderByString = '';
   if (field) {
-    orderByString = determineSortOrder(sortAscending)
+    orderByString = determineSortOrder(field, sortAscending)
   }
 
-  return `SELECT * FROM GoldMedal WHERE country = '${country}' ${orderByString}`
+  return `SELECT * FROM GoldMedal WHERE country = '${country}' ${orderByString};`
 };
 
 /*
@@ -147,7 +147,14 @@ aliased as 'percent'. Optionally ordered by the given field in the specified dir
 */
 
 const orderedSports = (country, field, sortAscending) => {
-  return;
+  let orderByString = '';
+  if (field) {
+    orderByString = determineSortOrder(field, sortAscending)
+  }
+  return `SELECT sport, COUNT(sport) AS count, (COUNT(sport) * 100 / (select COUNT(*) FROM GoldMedal WHERE country = '${country}')) AS percent
+    FROM GoldMedal 
+    WHERE country = '${country}' 
+    GROUP BY sport ${orderByString};`;
 };
 
 module.exports = {
